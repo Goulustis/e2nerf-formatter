@@ -10,7 +10,7 @@ import contextlib
 
 
 from pointselector import ImagePointSelector
-from make_dataset_utils import parallel_map
+from misc_utils import parallel_map
 from proj_utils import pnp_extrns, triangulate_points, proj_3d_pnts, calc_clearness_score
 from sceneManager import ColcamSeneManager
 
