@@ -56,7 +56,7 @@ class E2NerfRGBManager:
 
     def __init__(self, data_dir):
         self.data_dir = data_dir
-        self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*.png")))
+        self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*")))
         
         rgb_poses_bounds_f = osp.join(data_dir, "rgb_poses_bounds.npy")
         if osp.exists(rgb_poses_bounds_f):
