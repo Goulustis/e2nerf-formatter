@@ -95,7 +95,7 @@ def load_poses_bounds(path):
     poses_arr = np.load(path)
     poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0])
     bds = poses_arr[:, -2:].transpose([1,0])
-    hwf = poses[:, 3, 4:]
+    hwf = poses[:, 4:, :].squeeze()
 
     # shapes = (3,5,n), (2,n), (3,n)
     return poses, bds, hwf
