@@ -21,12 +21,12 @@ class E2NerfRGBManager:
             self.poses, self.bds, self.hwf = load_poses_bounds(rgb_poses_bounds_f)
         else:
             self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
+        self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
+        self.w2cs = self.w2cs[:, :3, :4]
         self.hwf = self.hwf[..., 0]
 
-        self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
-
         n_bins = 5
-        meta_f = osp.join(data_dir, "meta.json")
+        meta_f = osp.join(data_dir, "metadata.json")
         if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
@@ -62,19 +62,20 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         else:
             self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
         self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
+        self.w2cs = self.w2cs[:, :3, :4]
         self.hwf = self.hwf[..., 0]
 
 
         n_bins = 5
-        if osp.exists(osp.join(data_dir, "meta.json")):
-            meta_f = osp.join(data_dir, "meta.json")
+        meta_f = osp.join(data_dir, "metadata.json")
+        if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
             n_bins = self.meta["n_bins"]
         
         h, w = self.hwf[:2].astype(int)
         self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
-        self.imgs = self.imgs.reshape(-1, n_bins, h, w)[:, n_bins//2, :, :]
+        self.imgs = self.imgs.reshape(-1, n_bins - 1, h, w)[:, n_bins//2, :, :]
 
     def __len__(self):
         return len(self.imgs)
@@ -83,4 +84,4 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         assert 0, "Not implemented"
     
     def get_img(self, idx):
-        return (self.imgs[idx] != 0).astype(np.uint8)
+        return (self.imgs[idx] != 0).astype(np.uint8) * 255
