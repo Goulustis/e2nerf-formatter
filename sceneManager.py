@@ -5,7 +5,7 @@ import json
 import torch
 import cv2
 
-from nerfies.camera import Camera
+# from nerfies.camera import Camera
 from camera_utils import load_poses_bounds, poses_to_w2cs_hwf
 
 
@@ -63,6 +63,7 @@ class E2NerfRGBManager:
             self.poses, self.bds, self.hwf = load_poses_bounds(rgb_poses_bounds_f)
         else:
             self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
+        self.hwf = self.hwf[..., 0]
 
         self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
 
@@ -88,13 +89,14 @@ class E2NerfRGBManager:
     def get_intrnxs(self):
         return np.array([[self.hwf[2], 0, self.hwf[0]],
                          [0, self.hwf[2], self.hwf[1]],
-                         [0,           0,           1]]), np.array([0,0,0,0])
+                         [0,           0,           1]]), np.zeros(4)
 
 
 class E2NeRFEVSManager(E2NerfRGBManager):
     def __init__(self, data_dir):
         self.data_dir = data_dir
         self.imgs = torch.load(osp.join(self.data_dir, "events.pt")).numpy()
+        # self.imgs = np.load(osp.join(self.data_dir, "events.npy"))
 
         evs_poses_bounds_f = osp.join(data_dir, "evs_poses_bounds.npy")
         if osp.exists(evs_poses_bounds_f):
@@ -102,6 +104,7 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         else:
             self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
         self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
+        self.hwf = self.hwf[..., 0]
 
 
         n_bins = 5
@@ -111,10 +114,12 @@ class E2NeRFEVSManager(E2NerfRGBManager):
                 self.meta = json.load(f)
             n_bins = self.meta["n_bins"]
         
-        h, w = self.hwf[...,0][:2]
+        h, w = self.hwf[:2].astype(int)
         self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
         self.imgs = self.imgs.reshape(-1, n_bins, h, w)[:, n_bins//2, :, :]
 
+    def __len__(self):
+        return len(self.imgs)
 
     def get_img_f(self, idx):
         assert 0, "Not implemented"
