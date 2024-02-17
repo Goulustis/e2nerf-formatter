@@ -12,7 +12,7 @@ import contextlib
 from pointselector import ImagePointSelector
 from misc_utils import parallel_map
 from proj_utils import pnp_extrns, triangulate_points, proj_3d_pnts, calc_clearness_score
-from sceneManager import ColcamSeneManager
+from sceneManager import E2NerfRGBManager, E2NeRFEVSManager
 
 TMP_DIR = "./tmp"
 
@@ -81,7 +81,7 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
         colmap_pnts = np.load(colmap_pnts_f)
     else:
         assert colmap_dir is not None, "need all other params to create 3d points"
-        manager = ColcamSeneManager(colmap_dir)
+        manager = E2NerfRGBManager(colmap_dir)
         rgb_K, rgb_D = manager.get_intrnxs()
 
         # takes a formated dataset; so the index starts at 0 now
@@ -138,9 +138,9 @@ def validate_ecamset():
 
     # ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/ecam_set"
     # ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/trig_ecam_set"
-    ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/colcam_set"
+    ecamset = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
     
-    colmap_dir = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/colcam_set"
+    colmap_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
 
     save_dir_dicts = {"ecam_set":osp.join(TMP_DIR, f"{scene}_ecamset_proj"),
                       "colcam_set": osp.join(TMP_DIR, f"{scene}_colcamset_proj"),
@@ -149,15 +149,11 @@ def validate_ecamset():
     save_dir = save_dir_dicts[osp.basename(ecamset)]
 
     os.makedirs(save_dir, exist_ok=True)
-    cam_fs = sorted(glob.glob(osp.join(ecamset, "camera", "*.json")))
 
-    if "colcam_set" in ecamset:
-        eimgs = sorted(glob.glob(osp.join(ecamset, "rgb", "1x", "*.png")))
-    else:
-        eimgs = np.load(osp.join(ecamset, "eimgs", "eimgs_1x.npy"), "r")
+    evsManager = E2NeRFEVSManager(ecamset)
 
-    ecam_K, ecam_D = load_json_intr(cam_fs[0])
-    ecams = parallel_map(load_json_cam, cam_fs, show_pbar=True, desc="loading json cams") 
+    ecam_K, ecam_D = evsManager.get_intrnxs()
+    ecams = parallel_map(evsManager.get_extrnxs, list(range(len(evsManager))), show_pbar=True, desc="loading evs extrinsics")
 
 
     objpnts = load_objpnts(objpnts_f, colmap_dir, calc_clear=False, use_checker=False)
@@ -167,11 +163,7 @@ def validate_ecamset():
         return proj_3d_pnts(img, ecam_K, extr, objpnts, dist_coeffs=ecam_D)[1]
 
 
-    if "colcam_set" in ecamset:
-        eimgs = parallel_map(lambda x : cv2.imread(x), eimgs, show_pbar=True, desc="creating eimgs")
-    else:
-        eimgs = parallel_map(lambda x : np.stack([(x != 0).astype(np.uint8) * 255]*3, axis=-1), eimgs, show_pbar=True, desc="creating eimgs")
-    # eimgs = parallel_map(lambda x : cv2.imread(x), eimgs, show_pbar=True, desc="creating eimgs")
+    eimgs = parallel_map(evsManager.get_img, list(range(len(evsManager))), show_pbar=True, desc="loading evs imgs")
     proj_eimgs = parallel_map(proj_fn, list(zip(eimgs, ecams)), show_pbar=True, desc="projecting points")
 
     
