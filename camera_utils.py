@@ -91,6 +91,15 @@ def w2cs_hwf_to_poses(w2c_mats, hwf):
     return poses
 
 
+def load_poses_bounds(path):
+    poses_arr = np.load(path)
+    poses = poses_arr[:, :-2].reshape([-1, 3, 5]).transpose([1,2,0])
+    bds = poses_arr[:, -2:].transpose([1,0])
+    hwf = poses[:, 3, 4:]
+
+    # shapes = (3,5,n), (2,n), (3,n)
+    return poses, bds, hwf
+
 
 if __name__ == "__main__":
     colcam_path = "/ubc/cs/research/kmyi/matthew/backup_copy/raw_real_ednerf_data/Videos/calib_checker_recons/sparse/0/cameras.bin"
