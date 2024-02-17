@@ -58,14 +58,21 @@ class E2NerfRGBManager:
         self.data_dir = data_dir
         self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*.png")))
         
-        self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "rgb_poses_bounds.npy"))
+        rgb_poses_bounds_f = osp.join(data_dir, "rgb_poses_bounds.npy")
+        if osp.exists(rgb_poses_bounds_f):
+            self.poses, self.bds, self.hwf = load_poses_bounds(rgb_poses_bounds_f)
+        else:
+            self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
+
         self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
 
+        n_bins = 5
         meta_f = osp.join(data_dir, "meta.json")
-        with open(meta_f, "r") as f:
-            self.meta = json.load(f)
-        
-        n_bins = self.meta["n_bins"]
+        if osp.exists(meta_f):
+            with open(meta_f, "r") as f:
+                self.meta = json.load(f)
+            
+            n_bins = self.meta["n_bins"]
         self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
 
 
@@ -87,17 +94,26 @@ class E2NerfRGBManager:
 class E2NeRFEVSManager(E2NerfRGBManager):
     def __init__(self, data_dir):
         self.data_dir = data_dir
-        self.imgs = torch.load(osp.join(self.data_dir, "events.pt"))
-        self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "evs_poses_bounds.npy"))
+        self.imgs = torch.load(osp.join(self.data_dir, "events.pt")).numpy()
+
+        evs_poses_bounds_f = osp.join(data_dir, "evs_poses_bounds.npy")
+        if osp.exists(evs_poses_bounds_f):
+            self.poses, self.bds, self.hwf = load_poses_bounds(evs_poses_bounds_f)
+        else:
+            self.poses, self.bds, self.hwf = load_poses_bounds(osp.join(data_dir, "poses_bounds.npy"))
         self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
 
-        meta_f = osp.join(data_dir, "meta.json")
-        with open(meta_f, "r") as f:
-            self.meta = json.load(f)
+
+        n_bins = 5
+        if osp.exists(osp.join(data_dir, "meta.json")):
+            meta_f = osp.join(data_dir, "meta.json")
+            with open(meta_f, "r") as f:
+                self.meta = json.load(f)
+            n_bins = self.meta["n_bins"]
         
         h, w = self.hwf[...,0][:2]
-        n_bins = self.meta["n_bins"]
-        self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, h, w]
+        self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
+        self.imgs = self.imgs.reshape(-1, n_bins, h, w)[:, n_bins//2, :, :]
 
 
     def get_img_f(self, idx):
