@@ -47,8 +47,8 @@ class E2NerfRGBManager:
         return self.w2cs[idx]
 
     def get_intrnxs(self):
-        return np.array([[self.hwf[2], 0, self.hwf[0]],
-                         [0, self.hwf[2], self.hwf[1]],
+        return np.array([[self.hwf[2], 0, self.hwf[1]/2],
+                         [0, self.hwf[2], self.hwf[0]/2],
                          [0,           0,           1]]), np.zeros(4)
 
 
