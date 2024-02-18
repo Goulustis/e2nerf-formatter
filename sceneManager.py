@@ -86,4 +86,4 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         assert 0, "Not implemented"
     
     def get_img(self, idx):
-        return (self.imgs[idx] != 0).astype(np.uint8) * 255
+        return np.stack([(self.imgs[idx] != 0).astype(np.uint8) * 255]*3, axis=-1)
