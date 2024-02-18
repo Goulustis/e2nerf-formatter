@@ -34,6 +34,8 @@ class E2NerfRGBManager:
             n_bins = self.meta["n_bins"]
         self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
 
+    def __len__(self):
+        return len(self.img_fs)
 
     def get_img_f(self, idx):
         return self.img_fs[idx]
