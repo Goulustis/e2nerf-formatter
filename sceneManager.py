@@ -27,6 +27,7 @@ class E2NerfRGBManager:
 
         n_bins = 5
         meta_f = osp.join(data_dir, "metadata.json")
+        self.meta = None
         if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
@@ -70,6 +71,7 @@ class E2NeRFEVSManager(E2NerfRGBManager):
 
         n_bins = 5
         meta_f = osp.join(data_dir, "metadata.json")
+        self.meta = None
         if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
@@ -87,3 +89,11 @@ class E2NeRFEVSManager(E2NerfRGBManager):
     
     def get_img(self, idx):
         return np.stack([(self.imgs[idx] != 0).astype(np.uint8) * 255]*3, axis=-1)
+
+    def get_intrnxs(self):
+        if self.meta is None:
+            return super().get_intrnxs()
+        
+        return np.array([[self.hwf[2], 0, self.meta["evs_K"][2]],
+                         [0, self.hwf[2], self.meta["evs_K"][3]],
+                         [0,           0,           1]]), np.zeros(4)
