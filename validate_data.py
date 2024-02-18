@@ -89,7 +89,8 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
             clear_idxs = calc_clearness_score([manager.get_img_f(i) for i in range(len(manager))])[1]
             idx1, idx2 = clear_idxs[0], clear_idxs[0 + 3]            
         else:
-            idx1, idx2 = 153, 182
+            idx1, idx2 = 0, 5
+            # idx1, idx2 = 105, 116
 
         selector = ImagePointSelector([manager.get_img_f(idx1), manager.get_img_f(idx2)], save_dir=TMP_DIR)
         if not use_checker:
@@ -129,28 +130,19 @@ def load_json_intr(cam_f):
 
 ### IMPLEMENTATION IS CORRECT FOR VALIDATION
 def validate_ecamset():
-    scene = "checkerboard_2_tilt_fb_000000"
-    # scene = "boardroom_b1_v1"
 
+    ecamset = "data/camera"
+    colmap_dir = "data/camera"
+
+    scene = osp.basename(ecamset)
     objpnts_f = f"tmp/{scene}_triangulated.npy"
 
-    # os.remove(objpnts_f)
-
-    # ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/ecam_set"
-    # ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo_formatter/checkerboard_2_tilt_fb_000000/trig_ecam_set"
-    ecamset = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
-    
-    colmap_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
-
-    save_dir_dicts = {"ecam_set":osp.join(TMP_DIR, f"{scene}_ecamset_proj"),
-                      "colcam_set": osp.join(TMP_DIR, f"{scene}_colcamset_proj"),
-                      "trig_ecamset":osp.join(TMP_DIR, f"{scene}_trig_ecamset_proj")}
-
-    save_dir = save_dir_dicts[osp.basename(ecamset)]
+    save_dir = osp.join(TMP_DIR, f"{osp.basename(ecamset)}_proj")
 
     os.makedirs(save_dir, exist_ok=True)
 
     evsManager = E2NeRFEVSManager(ecamset)
+    # evsManager = E2NerfRGBManager(ecamset)
 
     ecam_K, ecam_D = evsManager.get_intrnxs()
     ecams = parallel_map(evsManager.get_extrnxs, list(range(len(evsManager))), show_pbar=True, desc="loading evs extrinsics")
@@ -187,6 +179,4 @@ def validate_ecamset():
 
 
 if __name__ == "__main__":
-    # validate_in_stereo_space()
-    # validate_in_colmap_space()
     validate_ecamset()
