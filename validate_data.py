@@ -89,8 +89,8 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
             clear_idxs = calc_clearness_score([manager.get_img_f(i) for i in range(len(manager))])[1]
             idx1, idx2 = clear_idxs[0], clear_idxs[0 + 3]            
         else:
-            idx1, idx2 = 0, 5
-            # idx1, idx2 = 105, 116
+            # idx1, idx2 = 0, 5
+            idx1, idx2 = 105, 116
 
         selector = ImagePointSelector([manager.get_img_f(idx1), manager.get_img_f(idx2)], save_dir=TMP_DIR)
         if not use_checker:
@@ -131,8 +131,8 @@ def load_json_intr(cam_f):
 ### IMPLEMENTATION IS CORRECT FOR VALIDATION
 def validate_ecamset():
 
-    ecamset = "data/camera"
-    colmap_dir = "data/camera"
+    ecamset = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
+    colmap_dir = ecamset
 
     scene = osp.basename(ecamset)
     objpnts_f = f"tmp/{scene}_triangulated.npy"
@@ -141,8 +141,8 @@ def validate_ecamset():
 
     os.makedirs(save_dir, exist_ok=True)
 
-    evsManager = E2NeRFEVSManager(ecamset)
-    # evsManager = E2NerfRGBManager(ecamset)
+    # evsManager = E2NeRFEVSManager(ecamset)
+    evsManager = E2NerfRGBManager(ecamset)
 
     ecam_K, ecam_D = evsManager.get_intrnxs()
     ecams = parallel_map(evsManager.get_extrnxs, list(range(len(evsManager))), show_pbar=True, desc="loading evs extrinsics")
