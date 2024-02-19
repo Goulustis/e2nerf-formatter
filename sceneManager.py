@@ -48,9 +48,14 @@ class E2NerfRGBManager:
         return self.w2cs[idx]
 
     def get_intrnxs(self):
-        return np.array([[self.hwf[2], 0, self.hwf[1]/2],
-                         [0, self.hwf[2], self.hwf[0]/2],
-                         [0,           0,           1]]), np.zeros(4)
+        if self.meta is None:
+            return np.array([[self.hwf[2], 0, self.hwf[1]/2],
+                            [0, self.hwf[2], self.hwf[0]/2],
+                            [0,           0,           1]]), np.zeros(4)
+        else:
+            return np.array([[self.hwf[2], 0, self.meta["rgb_K"][2]],
+                             [0, self.hwf[2], self.meta["rgb_K"][3]],
+                             [0,           0,           1          ]]), np.zeros(4)
 
 
 class E2NeRFEVSManager(E2NerfRGBManager):
