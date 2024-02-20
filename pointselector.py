@@ -11,7 +11,12 @@ def detect_chessboard(img):
 class ImagePointSelector:
     def __init__(self, image_paths, show_point_indices=True, save=True, save_dir = None, save_fs = None, end_fix="pnts"):
         self.image_paths = image_paths
-        self.images = [cv2.imread(path) for path in image_paths]
+
+        if type(self.image_paths[0]) == str:
+            self.images = [cv2.imread(path) for path in image_paths]
+        else:
+            self.images = self.image_paths
+            self.image_paths = ["00000.png", "00001.png"]
         self.copies = [img.copy() for img in self.images]
         self.points = [[] for _ in image_paths]
         self.show_point_indices = show_point_indices

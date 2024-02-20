@@ -29,7 +29,8 @@ def proj_3d_pnts(img, intrinsics, extrinsics, pnts_3d, pnt_idxs=None, dist_coeff
     selected_pnts_3d = pnts_3d
 
     # Project points
-    proj_pnts_2d, _ = cv2.projectPoints(selected_pnts_3d, R, T, intrinsics, dist_coeffs)
+    proj_pnts_2d, _ = cv2.projectPoints(selected_pnts_3d, R.astype(np.float64), T.astype(np.float64), 
+                                                          intrinsics.astype(np.float64), dist_coeffs.astype(np.float64))
 
     # Draw points and labels on the image
     if img is not None:

@@ -13,6 +13,7 @@ from pointselector import ImagePointSelector
 from misc_utils import parallel_map
 from proj_utils import pnp_extrns, triangulate_points, proj_3d_pnts, calc_clearness_score
 from sceneManager import E2NerfRGBManager, E2NeRFEVSManager
+from edllff_loader import EdllffEVSWrapper, EdllffRGBWrapper
 
 TMP_DIR = "./tmp"
 
@@ -81,7 +82,8 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
         colmap_pnts = np.load(colmap_pnts_f)
     else:
         assert colmap_dir is not None, "need all other params to create 3d points"
-        manager = E2NerfRGBManager(colmap_dir)
+        # manager = E2NerfRGBManager(colmap_dir)
+        manager = EdllffRGBWrapper(colmap_dir)
         rgb_K, rgb_D = manager.get_intrnxs()
 
         # takes a formated dataset; so the index starts at 0 now
@@ -93,6 +95,7 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
             idx1, idx2 = 105, 116
 
         selector = ImagePointSelector([manager.get_img_f(idx1), manager.get_img_f(idx2)], save_dir=TMP_DIR)
+        # selector = ImagePointSelector([manager.get_img(idx1), manager.get_img(idx2)], save_dir=TMP_DIR)        
         if not use_checker:
             pnts = selector.select_points()
         else:
@@ -141,8 +144,10 @@ def validate_ecamset():
 
     os.makedirs(save_dir, exist_ok=True)
 
-    # evsManager = E2NeRFEVSManager(ecamset)
-    evsManager = E2NerfRGBManager(ecamset)
+    evsManager = E2NeRFEVSManager(ecamset)
+    # evsManager = E2NerfRGBManager(ecamset)
+    # evsManager = EdllffRGBWrapper(ecamset)
+    # evsManager = EdllffEVSWrapper(ecamset)
 
     ecam_K, ecam_D = evsManager.get_intrnxs()
     ecams = parallel_map(evsManager.get_extrnxs, list(range(len(evsManager))), show_pbar=True, desc="loading evs extrinsics")
