@@ -26,21 +26,27 @@ class E2NerfRGBManager:
         self.w2cs = self.w2cs[:, :3, :4]
         self.hwf = self.hwf[..., 0]
 
-        n_bins = 5
+        self.n_bins = 5
         meta_f = osp.join(data_dir, "metadata.json")
         self.meta = None
         if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
             
-            n_bins = self.meta["n_bins"]
+            self.n_bins = self.meta["n_bins"]
         
+        self.w2cs = self.w2cs.reshape(-1, self.n_bins, 3, 4)
         if single_cam:
-            self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
+            self.w2cs = self.w2cs[:, self.n_bins//2, :, :]
+        
+        self.img_size = self.get_img(0).shape[:2]
 
     def __len__(self):
         return len(self.img_fs)
 
+    def get_img_size(self):
+        return self.img_size
+    
     def get_img_f(self, idx):
         return self.img_fs[idx]
 
@@ -77,19 +83,25 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         self.hwf = self.hwf[..., 0]
 
 
-        n_bins = 5
+        self.n_bins = 5
         meta_f = osp.join(data_dir, "metadata.json")
         self.meta = None
         if osp.exists(meta_f):
             with open(meta_f, "r") as f:
                 self.meta = json.load(f)
-            n_bins = self.meta["n_bins"]
+            self.n_bins = self.meta["n_bins"]
         
         h, w = self.hwf[:2].astype(int)
+        self.img_size = (h, w)
+
+        self.w2cs = self.w2cs.reshape(-1, self.n_bins, 3, 4)
+        self.imgs = self.imgs.reshape(-1, self.n_bins - 1, h, w)
 
         if single_cam:
-            self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
-            self.imgs = self.imgs.reshape(-1, n_bins - 1, h, w)[:, n_bins//2, :, :]
+            self.w2cs = self.w2cs[:, self.n_bins//2, :, :]
+            self.imgs = self.imgs[:, self.n_bins//2, :, :]
+        else:
+            self.imgs = self.imgs.reshape(-1, h, w)
 
     def __len__(self):
         return len(self.imgs)
