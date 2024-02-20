@@ -12,8 +12,9 @@ from camera_utils import load_poses_bounds, poses_to_w2cs_hwf
 
 class E2NerfRGBManager:
 
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, single_cam=True):
         self.data_dir = data_dir
+        self.single_cam = single_cam
         self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*")))
         
         rgb_poses_bounds_f = osp.join(data_dir, "rgb_poses_bounds.npy")
@@ -33,7 +34,9 @@ class E2NerfRGBManager:
                 self.meta = json.load(f)
             
             n_bins = self.meta["n_bins"]
-        self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
+        
+        if single_cam:
+            self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
 
     def __len__(self):
         return len(self.img_fs)
@@ -59,10 +62,10 @@ class E2NerfRGBManager:
 
 
 class E2NeRFEVSManager(E2NerfRGBManager):
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, single_cam=True):
         self.data_dir = data_dir
+        self.single_cam = single_cam
         self.imgs = torch.load(osp.join(self.data_dir, "events.pt")).numpy()
-        # self.imgs = np.load(osp.join(self.data_dir, "events.npy"))
 
         evs_poses_bounds_f = osp.join(data_dir, "evs_poses_bounds.npy")
         if osp.exists(evs_poses_bounds_f):
@@ -83,8 +86,10 @@ class E2NeRFEVSManager(E2NerfRGBManager):
             n_bins = self.meta["n_bins"]
         
         h, w = self.hwf[:2].astype(int)
-        self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
-        self.imgs = self.imgs.reshape(-1, n_bins - 1, h, w)[:, n_bins//2, :, :]
+
+        if single_cam:
+            self.w2cs = self.w2cs.reshape(-1, n_bins, 3, 4)[:, n_bins//2, :, :]
+            self.imgs = self.imgs.reshape(-1, n_bins - 1, h, w)[:, n_bins//2, :, :]
 
     def __len__(self):
         return len(self.imgs)
