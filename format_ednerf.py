@@ -160,7 +160,7 @@ def main():
 
     rgbScene = E2NerfRGBManager(scene_dir)
 
-    save_img_dir = osp.join(colcam_dir, "images", "1x")
+    save_img_dir = osp.join(colcam_dir, "rgb", "1x")
     copy_imgs_to_dir(rgbScene, save_img_dir)
 
     save_rgb_cam_dir = osp.join(colcam_dir, "camera")
