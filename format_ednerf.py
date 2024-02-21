@@ -106,9 +106,10 @@ def save_eimgs(evsScene, save_dir):
 def write_rgb_metadata(rgbScene, save_f):
     metadata = {}
 
+    n_bins = rgbScene.n_bins
     for i in range(len(rgbScene)):
-        metadata[str(i).zfill(5)] = {"warp_id": i*rgbScene.n_bins,
-                                     "appearance_id": i*rgbScene.n_bins,
+        metadata[str(i).zfill(5)] = {"warp_id": i*(n_bins - 1) + n_bins//2,
+                                     "appearance_id": i*(n_bins - 1) + n_bins//2,
                                      "camera_id": 0}
     
     with open(save_f, "w") as f:
