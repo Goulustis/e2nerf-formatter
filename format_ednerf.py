@@ -2,9 +2,9 @@ import numpy as np
 import os.path as osp
 import os
 import glob
-import torch
 import cv2
-from misc_utils import parallel_map
+import argparse
+
 from nerfies.camera import Camera
 import json
 
@@ -25,7 +25,7 @@ def make_nerfies_camera(ext_mtx, intr_mtx, dist, img_size):
     R = ext_mtx[:3,:3]
     t = ext_mtx[:3,3]
     k1, k2, p1, p2 = dist
-    coord = -t.T@R  
+    coord = -R.T@t  
     h, w = img_size
 
     cx, cy = intr_mtx[:2,2].astype(int)
@@ -155,6 +155,7 @@ def write_dataset(scene, save_f, n_digit, all=False):
 
 def main():
     scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/camera"
+    # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
     targ_dir = "dev_camera"
     colcam_dir = osp.join(targ_dir, "colcam_set")
     ecam_dir = osp.join(targ_dir, "ecam_set")
