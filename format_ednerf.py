@@ -4,6 +4,9 @@ import os
 import glob
 import cv2
 import argparse
+import glob
+from tqdm import tqdm
+import shutil
 
 from nerfies.camera import Camera
 import json
@@ -87,7 +90,7 @@ def format_evs_cameras(evsScene:E2NeRFEVSManager, save_dir):
 
 def copy_imgs_to_dir(rgbScene, save_dir):
     os.makedirs(save_dir, exist_ok=True)
-    for i in range(len(rgbScene)):
+    for i in tqdm(range(len(rgbScene)), desc="copying rgb images"):
         img = rgbScene.get_img(i)
         cv2.imwrite(osp.join(save_dir, f"{i:05d}.png"), img)
 
@@ -153,10 +156,11 @@ def write_dataset(scene, save_f, n_digit, all=False):
         json.dump(dataset_json, f, indent=2)
 
 
-def main():
-    scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/camera"
+def main(scene_dir, targ_dir=None):
+    # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/camera"
     # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
-    targ_dir = "dev_camera"
+    if targ_dir is None:
+        targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", osp.basename(scene_dir))
     colcam_dir = osp.join(targ_dir, "colcam_set")
     ecam_dir = osp.join(targ_dir, "ecam_set")
 
@@ -172,7 +176,11 @@ def main():
     write_rgb_metadata(rgbScene, rgb_metadata_f)
 
     rgb_dataset_f = osp.join(colcam_dir, "dataset.json")
-    write_dataset(rgbScene, rgb_dataset_f, 5, all=True)
+    src_dataset_f = osp.join(scene_dir, "dataset.json")
+    if osp.exists(src_dataset_f):
+        shutil.copy(src_dataset_f, rgb_dataset_f)
+    else:
+        write_dataset(rgbScene, rgb_dataset_f, 5, all=True)
 
 
 
@@ -193,4 +201,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    data_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world"
+    # scene_dirs = sorted(glob.glob(osp.join(data_dir, "*_v*")))
+
+    # for scene_dir in tqdm(scene_dirs):
+    #     main(scene_dir)
+    #     print("processed:", osp.basename(scene_dir))
+
+    scene_dir = osp.join(data_dir, "playground_v6")
+    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", "playground_v6_rect")
+    main(scene_dir, targ_dir)
