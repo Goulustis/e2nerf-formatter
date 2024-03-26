@@ -101,6 +101,29 @@ def load_poses_bounds(path):
     return poses, bds, hwf
 
 
+def load_json_intr(cam_f):
+    with open(cam_f, "r") as f:
+        data = json.load(f)
+        fx = fy = data["focal_length"]
+        cx, cy = data["principal_point"]
+        k1, k2, k3 = data["radial_distortion"]
+        p1, p2 = data["tangential_distortion"]
+    
+    return np.array([[fx, 0, cx],
+                    [0,   fy, cy],
+                    [0, 0, 1]]), np.array((k1,k2,p1,p2))
+
+
+
+def load_json_cam(cam_f):
+    with open(cam_f, "r") as f:
+        data = json.load(f)
+        R, pos = np.array(data["orientation"]), np.array(data["position"])
+        t = -(pos@R.T).T
+        t = t.reshape(-1,1)
+    
+    return np.concatenate([R, t], axis=-1)
+
 if __name__ == "__main__":
     colcam_path = "/ubc/cs/research/kmyi/matthew/backup_copy/raw_real_ednerf_data/Videos/calib_checker_recons/sparse/0/cameras.bin"
     img_f = "/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data/black_seoul_b3_v3/colcam_set/rgb/1x/00000.png"
