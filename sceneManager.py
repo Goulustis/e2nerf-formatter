@@ -17,8 +17,8 @@ class E2NerfRGBManager:
         self.single_cam = single_cam
         self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*")))
         
-        mid_rgb_poses_bounds_f = osp.join(data_dir, "mid_rgb_poses_bounds.npy")
-        rgb_poses_bounds_f = osp.join(data_dir, "rgb_poses_bounds.npy") if not osp.exists(mid_rgb_poses_bounds_f) else mid_rgb_poses_bounds_f
+        self.mid_rgb_poses_bounds_f = osp.join(data_dir, "mid_rgb_poses_bounds.npy")
+        rgb_poses_bounds_f = osp.join(data_dir, "rgb_poses_bounds.npy") if not osp.exists(self.mid_rgb_poses_bounds_f) else self.mid_rgb_poses_bounds_f
         if osp.exists(rgb_poses_bounds_f):
             self.poses, self.bds, self.hwf = load_poses_bounds(rgb_poses_bounds_f)
         else:
@@ -36,8 +36,8 @@ class E2NerfRGBManager:
             
             self.n_bins = self.meta["n_bins"]
         
-        self.w2cs = self.w2cs.reshape(-1, self.n_bins, 3, 4) if not osp.exists(mid_rgb_poses_bounds_f) else self.w2cs
-        if single_cam and (not osp.exists(mid_rgb_poses_bounds_f)):
+        self.w2cs = self.w2cs.reshape(-1, self.n_bins, 3, 4) if not osp.exists(self.mid_rgb_poses_bounds_f) else self.w2cs
+        if single_cam and (not osp.exists(self.mid_rgb_poses_bounds_f)):
             self.w2cs = self.w2cs[:, self.n_bins//2, :, :]
         
         self.img_size = self.get_img(0).shape[:2]
@@ -59,6 +59,9 @@ class E2NerfRGBManager:
     def get_extrnxs(self, idx):
         return self.w2cs[idx]
 
+    def get_camera_t(self, idx):
+        return self.meta["mid_cam_ts"][idx]
+
     def get_intrnxs(self):
         if self.meta is None:
             return np.array([[self.hwf[2], 0, self.hwf[1]/2],
@@ -72,6 +75,10 @@ class E2NerfRGBManager:
 
 class E2NeRFEVSManager(E2NerfRGBManager):
     def __init__(self, data_dir, single_cam=True):
+        """
+        data_dir (str): path to scene
+        single_cam (bool): cams are saved as (n, bin_size, *), if true, will select a single eimg and camera with the shape (n, *)
+        """
         self.data_dir = data_dir
         self.single_cam = single_cam
         self.imgs = torch.load(osp.join(self.data_dir, "events.pt")).numpy()
@@ -105,6 +112,9 @@ class E2NeRFEVSManager(E2NerfRGBManager):
             self.imgs = self.imgs[:, self.n_bins//2, :, :]
         else:
             self.imgs = self.imgs.reshape(-1, h, w)
+        
+        ev_t = self.meta.get("ev_cam_ts")
+        self.cam_t = np.array(self.meta["ev_cam_ts"]).reshape(-1, self.n_bins) if not (ev_t is None) else None
 
     def __len__(self):
         return min(len(self.imgs), len(self.w2cs))
