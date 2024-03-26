@@ -55,6 +55,10 @@ def format_rgb_cameras(rgbScene:E2NerfRGBManager, save_dir):
         K, dist = rgbScene.get_intrnxs()
         camera = make_nerfies_camera(M, K, dist, rgbScene.get_img_size())
         cam_json = camera.to_json()
+
+        if rgbScene.meta.get("mid_cam_ts") is not None:
+            cam_json["t"] = rgbScene.get_camera_t(i)
+
         with open(osp.join(save_dir, f"{i:05d}.json"), "w") as f:
             json.dump(cam_json, f, indent=2)
 
@@ -78,6 +82,11 @@ def format_evs_cameras(evsScene:E2NeRFEVSManager, save_dir):
             # I don't know why I decided on 6d
             prev_cam_f, next_cam_f = osp.join(prev_dir, f"{cam_idx:06d}.json"), osp.join(next_dir, f"{cam_idx:06d}.json")
             prev_json, next_json = prev_cam.to_json(), next_cam.to_json()
+
+            if evsScene.cam_t is not None:
+                prev_t, next_t = evsScene.cam_t[frame_idx, bin_idx], evsScene.cam_t[frame_idx, bin_idx + 1]
+                prev_json["t"], next_json["t"] = prev_t, next_t
+
 
             with open(prev_cam_f, "w") as f:
                 json.dump(prev_json, f, indent=2)
