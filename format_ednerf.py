@@ -98,7 +98,7 @@ def copy_imgs_to_dir(rgbScene, save_dir):
 def save_eimgs(evsScene, save_dir):
     os.makedirs(save_dir, exist_ok=True)
 
-    eimgs = evsScene.imgs
+    eimgs = evsScene.imgs.astype(np.int16)
     assert (np.abs(eimgs) < 127).all(), "can't format to int8!"
     eimgs = eimgs.astype(np.int8)
 
@@ -156,7 +156,7 @@ def write_dataset(scene, save_f, n_digit, all=False):
         json.dump(dataset_json, f, indent=2)
 
 
-def main(scene_dir, targ_dir=None):
+def main(scene_dir, targ_dir=None, cam_only=False):
     # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/camera"
     # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
     if targ_dir is None:
@@ -166,8 +166,9 @@ def main(scene_dir, targ_dir=None):
 
     rgbScene = E2NerfRGBManager(scene_dir)
 
-    save_img_dir = osp.join(colcam_dir, "rgb", "1x")
-    copy_imgs_to_dir(rgbScene, save_img_dir)
+    if not cam_only:
+        save_img_dir = osp.join(colcam_dir, "rgb", "1x")
+        copy_imgs_to_dir(rgbScene, save_img_dir)
 
     save_rgb_cam_dir = osp.join(colcam_dir, "camera")
     format_rgb_cameras(rgbScene, save_rgb_cam_dir)
@@ -186,8 +187,9 @@ def main(scene_dir, targ_dir=None):
 
     evsScene = E2NeRFEVSManager(scene_dir, single_cam=False)
 
-    save_eimgs_dir = osp.join(ecam_dir, "eimgs")
-    save_eimgs(evsScene, save_eimgs_dir)
+    if not cam_only:
+        save_eimgs_dir = osp.join(ecam_dir, "eimgs")
+        save_eimgs(evsScene, save_eimgs_dir)
 
     format_evs_cameras(evsScene, ecam_dir)
 
@@ -209,5 +211,6 @@ if __name__ == "__main__":
     #     print("processed:", osp.basename(scene_dir))
 
     scene_dir = osp.join(data_dir, "playground_v6")
-    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", "playground_v6_rect")
-    main(scene_dir, targ_dir)
+    # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", "playground_v6_rect")
+    targ_dir = "debug_data"
+    main(scene_dir, targ_dir, cam_only=True)
