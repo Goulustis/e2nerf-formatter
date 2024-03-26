@@ -44,6 +44,8 @@ class E2NerfRGBManager:
 
     def __len__(self):
         return len(self.img_fs)
+        # return min(len(self.imgs), len(self.w2cs))
+    
 
     def get_img_size(self):
         return self.img_size
@@ -105,7 +107,7 @@ class E2NeRFEVSManager(E2NerfRGBManager):
             self.imgs = self.imgs.reshape(-1, h, w)
 
     def __len__(self):
-        return len(self.imgs)
+        return min(len(self.imgs), len(self.w2cs))
 
     def get_img_f(self, idx):
         assert 0, "Not implemented"
