@@ -208,6 +208,11 @@ def main(scene_dir, targ_dir=None, cam_only=False):
     evs_dataset_f = osp.join(ecam_dir, "dataset.json")
     write_dataset(evsScene, evs_dataset_f, 6)
 
+    rel_cam_f = osp.join(scene_dir, "rel_cam.json")
+    dst_f = osp.join(targ_dir, "rel_cam.json")
+    if not osp.exists(dst_f):
+        shutil.copy(rel_cam_f, dst_f)
+
 
 
 
