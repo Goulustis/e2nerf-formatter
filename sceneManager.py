@@ -43,6 +43,9 @@ class E2NerfRGBManager:
         self.img_size = self.get_img(0).shape[:2]
 
     def __len__(self):
+        if self.meta.get("mid_cam_ts") is not None:
+            return len(self.meta.get("mid_cam_ts"))
+
         return len(self.img_fs)
         # return min(len(self.imgs), len(self.w2cs))
     
@@ -61,6 +64,9 @@ class E2NerfRGBManager:
 
     def get_camera_t(self, idx):
         return self.meta["mid_cam_ts"][idx]
+    
+    def get_colmap_scale(self):
+        return self.meta.get("colmap_scale")
 
     def get_intrnxs(self):
         if self.meta is None:
