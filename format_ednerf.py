@@ -116,7 +116,7 @@ def save_eimgs(evsScene, save_dir):
 
 
 def write_rgb_metadata(rgbScene, save_f):
-    metadata = {}
+    metadata = {"colmap_scale": rgbScene.get_colmap_scale()}
 
     n_bins = rgbScene.n_bins
     for i in range(len(rgbScene)):
@@ -130,7 +130,7 @@ def write_rgb_metadata(rgbScene, save_f):
 def write_evs_metadata(evsScene, save_f):
     n_frames = len(evsScene.w2cs)* (evsScene.n_bins - 1)
 
-    metadata = {}
+    metadata = {"colmap_scale": evsScene.get_colmap_scale()}
     for i in range(n_frames):
         metadata[str(i).zfill(6)] = {"warp_id": i,
                                      "appearance_id": i,
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     #     main(scene_dir)
     #     print("processed:", osp.basename(scene_dir))
 
-    scene_dir = osp.join(data_dir, "playground_v6")
-    # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", "playground_v6_rect")
-    targ_dir = "debug_data"
+    scene_name = "playground_v6"
+    scene_dir = osp.join(data_dir, scene_name)
+    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}_rect")
     main(scene_dir, targ_dir, cam_only=True)
