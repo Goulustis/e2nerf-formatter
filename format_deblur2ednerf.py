@@ -190,7 +190,7 @@ def main(scene_dir, targ_dir=None):
     write_dataset(rgbScene, rgb_dataset_f)
 
 
-    # TODO: make dummy event dataset
+
     n_frames, h, w = 10, 128, 128  # dummy params
 
     save_eimgs_dir = osp.join(ecam_dir, "eimgs")
@@ -206,6 +206,5 @@ def main(scene_dir, targ_dir=None):
 
 if __name__ == "__main__":
     scene_dir = "/ubc/cs/research/kmyi/matthew/projects/Deblur-NeRF/data/blurgirl"
-    targ_dir = "debug/dev_blurgirl"
-    # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}")
+    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", osp.basename(scene_dir))
     main(scene_dir, targ_dir)
