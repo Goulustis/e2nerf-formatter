@@ -43,7 +43,7 @@ class E2NerfRGBManager:
         self.img_size = self.get_img(0).shape[:2]
 
     def __len__(self):
-        if self.meta.get("mid_cam_ts") is not None:
+        if hasattr(self, "meta") and self.meta.get("mid_cam_ts") is not None:
             return len(self.meta.get("mid_cam_ts"))
 
         return len(self.img_fs)
@@ -164,6 +164,7 @@ class EcamManager(E2NeRFEVSManager):
 
         self.imgs = np.load(osp.join(data_dir, "eimgs", "eimgs_1x.npy"))
         self.cam_fs = sorted(glob.glob(osp.join(data_dir, "camera", "*.json")))
+        # self.cam_fs = sorted(glob.glob(osp.join(data_dir, "prev_camera", "*.json")))
 
         self.K, self.D = load_json_intr(self.cam_fs[0])
         self.w2cs = [load_json_cam(cam_f) for cam_f in self.cam_fs]
