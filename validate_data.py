@@ -12,7 +12,7 @@ import contextlib
 from pointselector import ImagePointSelector
 from misc_utils import parallel_map
 from proj_utils import pnp_extrns, triangulate_points, proj_3d_pnts, calc_clearness_score
-from sceneManager import E2NerfRGBManager, E2NeRFEVSManager
+from sceneManager import E2NerfRGBManager, E2NeRFEVSManager, ColcamManager, EcamManager
 from edllff_loader import EdllffEVSWrapper, EdllffRGBWrapper
 
 TMP_DIR = "./tmp"
@@ -83,7 +83,7 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
     else:
         assert colmap_dir is not None, "need all other params to create 3d points"
         # manager = E2NerfRGBManager(colmap_dir)
-        manager = EdllffRGBWrapper(colmap_dir)
+        manager = ColcamManager(colmap_dir)
         rgb_K, rgb_D = manager.get_intrnxs()
 
         # takes a formated dataset; so the index starts at 0 now
@@ -91,8 +91,8 @@ def load_objpnts(colmap_pnts_f, colmap_dir=None, calc_clear=False, use_checker=F
             clear_idxs = calc_clearness_score([manager.get_img_f(i) for i in range(len(manager))])[1]
             idx1, idx2 = clear_idxs[0], clear_idxs[0 + 3]            
         else:
-            # idx1, idx2 = 0, 5
-            idx1, idx2 = 105, 116
+            idx1, idx2 = 0, 35
+            # idx1, idx2 = 105, 116
 
         selector = ImagePointSelector([manager.get_img_f(idx1), manager.get_img_f(idx2)], save_dir=TMP_DIR)
         # selector = ImagePointSelector([manager.get_img(idx1), manager.get_img(idx2)], save_dir=TMP_DIR)        
@@ -134,7 +134,10 @@ def load_json_intr(cam_f):
 ### IMPLEMENTATION IS CORRECT FOR VALIDATION
 def validate_ecamset():
 
-    ecamset = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
+    # ecamset = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/cs_building_v6"
+    ecamset = "/ubc/cs/research/kmyi/matthew/projects/evimo-formatter/debug"
+    # ecamset = "/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data/depth_var_1_lr_000000"
+    # ecamset = "/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data/racoon_v6_rect"
     colmap_dir = ecamset
 
     scene = osp.basename(ecamset)
@@ -144,7 +147,9 @@ def validate_ecamset():
 
     os.makedirs(save_dir, exist_ok=True)
 
-    evsManager = E2NeRFEVSManager(ecamset)
+    # evsManager = ColcamManager(ecamset)
+    evsManager = EcamManager(ecamset)
+    # evsManager = E2NeRFEVSManager(ecamset)
     # evsManager = E2NerfRGBManager(ecamset)
     # evsManager = EdllffRGBWrapper(ecamset)
     # evsManager = EdllffEVSWrapper(ecamset)
