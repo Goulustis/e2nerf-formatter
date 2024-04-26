@@ -10,3 +10,13 @@ def parallel_map(f, iterable, max_threads=None, show_pbar=False, desc="", **kwar
     else:
       results = executor.map(f, iterable, **kwargs)
     return list(results)
+
+
+def get_llffhold(config_f):
+    llffhold = None
+    with open(config_f, 'r') as f:
+        for line in f:
+            if line.startswith('llffhold'):
+                llffhold = int(line.split('=')[1].strip())
+                break
+    return llffhold
