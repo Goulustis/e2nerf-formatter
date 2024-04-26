@@ -6,6 +6,7 @@ import torch
 import cv2
 
 from camera_utils import load_poses_bounds, poses_to_w2cs_hwf, load_json_cam, load_json_intr
+from misc_utils import get_llffhold
 
 
 
@@ -49,16 +50,19 @@ class E2NerfRGBManager:
         return len(self.img_fs)
         # return min(len(self.imgs), len(self.w2cs))
     
-
+    # REQUIRED
     def get_img_size(self):
-        return self.img_size
+        return self.img_size # (h, w)
     
+    # REQUIRED
     def get_img_f(self, idx):
         return self.img_fs[idx]
 
+    # REQUIRED
     def get_img(self, idx):
         return cv2.imread(self.img_fs[idx])
     
+    # REQUIRED
     def get_extrnxs(self, idx):
         return self.w2cs[idx]
 
@@ -68,6 +72,7 @@ class E2NerfRGBManager:
     def get_colmap_scale(self):
         return self.meta.get("colmap_scale")
 
+    # REQUIRED
     def get_intrnxs(self):
         if self.meta is None:
             return np.array([[self.hwf[2], 0, self.hwf[1]/2],
@@ -175,3 +180,27 @@ class EcamManager(E2NeRFEVSManager):
 
     def get_intrnxs(self):
         return self.K, self.D
+    
+
+class DeblurRawSceneManager(E2NerfRGBManager):
+    def __init__(self, data_dir):
+        DEBLUR_NERF_CONFIG_DIR = "/ubc/cs/research/kmyi/matthew/projects/Deblur-NeRF/configs"
+        config_f = glob.glob(osp.join(DEBLUR_NERF_CONFIG_DIR, osp.basename(data_dir), "*.txt"))[0]
+
+        self.data_dir = data_dir
+        self.llffhold = get_llffhold(config_f)
+        self.img_fs = sorted(glob.glob(osp.join(data_dir, "images", "*")))
+
+        poses_bounds_f = osp.join(data_dir, "poses_bounds.npy")
+        self.poses, self.bds, self.hwf = load_poses_bounds(poses_bounds_f)
+        self.w2cs, _ = poses_to_w2cs_hwf(self.poses)
+        self.w2cs = self.w2cs[:, :3, :4]
+        self.hwf = self.hwf[..., 0]
+
+        self.meta = {}
+        self.img_size = self.get_img(0).shape[:2]
+    
+    def get_intrnxs(self):
+        return np.array([[self.hwf[2], 0, self.hwf[1]/2],
+                        [0, self.hwf[2], self.hwf[0]/2],
+                        [0,           0,           1]]), np.zeros(4)
