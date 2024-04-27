@@ -66,10 +66,11 @@ def format_rgb_cameras(rgbScene:DeblurRawSceneManager, save_dir):
 
 def copy_imgs_to_dir(rgbScene:DeblurRawSceneManager, save_dir):
     os.makedirs(save_dir, exist_ok=True)
+    f_extension = osp.splitext(rgbScene.get_img_f(0))[-1]
     for i in tqdm(range(len(rgbScene)), desc="copying rgb images"):
         # img = rgbScene.get_img(i)
         # cv2.imwrite(osp.join(save_dir, f"{i:05d}.png"), img)
-        shutil.copy(rgbScene.get_img_f(i), osp.join(save_dir, f"{i:05d}.png"))
+        shutil.copy(rgbScene.get_img_f(i), osp.join(save_dir, f"{i:05d}{f_extension}"))
 
 
 def save_eimgs(evsScene, save_dir):
@@ -205,6 +206,6 @@ def main(scene_dir, targ_dir=None):
 
 
 if __name__ == "__main__":
-    scene_dir = "/ubc/cs/research/kmyi/matthew/projects/Deblur-NeRF/data/blurgirl"
+    scene_dir = "/ubc/cs/research/kmyi/matthew/projects/Deblur-NeRF/data/blurparterre"
     targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", osp.basename(scene_dir))
     main(scene_dir, targ_dir)
