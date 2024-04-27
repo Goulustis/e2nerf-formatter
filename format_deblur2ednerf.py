@@ -73,16 +73,6 @@ def copy_imgs_to_dir(rgbScene:DeblurRawSceneManager, save_dir):
         shutil.copy(rgbScene.get_img_f(i), osp.join(save_dir, f"{i:05d}{f_extension}"))
 
 
-def save_eimgs(evsScene, save_dir):
-    os.makedirs(save_dir, exist_ok=True)
-
-    eimgs = evsScene.imgs.astype(np.int16)
-    assert (np.abs(eimgs) < 127).all(), "can't format to int8!"
-    eimgs = eimgs.astype(np.int8)
-
-    save_f = osp.join(save_dir, "eimgs_1x.npy")
-    np.save(save_f, eimgs)
-
 
 def write_rgb_metadata(rgbScene:DeblurRawSceneManager, save_f):
     metadata = {"colmap_scale": rgbScene.get_colmap_scale()}
