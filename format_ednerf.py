@@ -107,9 +107,12 @@ def copy_imgs_to_dir(rgbScene, save_dir):
 def save_eimgs(evsScene, save_dir):
     os.makedirs(save_dir, exist_ok=True)
 
-    eimgs = evsScene.imgs.astype(np.int16)
-    assert (np.abs(eimgs) < 127).all(), "can't format to int8!"
-    eimgs = eimgs.astype(np.int8)
+    if evsScene.imgs.dtype == np.int8:
+        eimgs = evsScene.imgs
+    else:
+        eimgs = evsScene.imgs.astype(np.int16)
+        assert (np.abs(eimgs) < 127).all(), "can't format to int8!"
+        eimgs = eimgs.astype(np.int8)
 
     save_f = osp.join(save_dir, "eimgs_1x.npy")
     np.save(save_f, eimgs)
@@ -224,7 +227,9 @@ if __name__ == "__main__":
     #     main(scene_dir)
     #     print("processed:", osp.basename(scene_dir))
 
-    scene_name = "playground_v6"
+    #scene_name = "caocao1_v11_t1"
+    scene_name = "board_v13_t2"
     scene_dir = osp.join(data_dir, scene_name)
-    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}_rect")
-    main(scene_dir, targ_dir, cam_only=True)
+    # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}_finer")
+    targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}")
+    main(scene_dir, targ_dir, cam_only=False)
