@@ -66,15 +66,15 @@ def format_rgb_cameras(rgbScene:E2NerfRGBManager, save_dir):
 def format_full_cameras(rgbScene:E2NerfRGBManager, save_dir):
     os.makedirs(save_dir, exist_ok=True)
     rgb_cams = rgbScene.ori_w2cs.reshape(-1, 3, 4)
-    for i in range(len(rgbScene)):
+    for i in range(len(rgb_cams)):
         M = rgb_cams[i]
         K, dist = rgbScene.get_intrnxs()
         camera = make_nerfies_camera(M, K, dist, rgbScene.get_img_size())
         cam_json = camera.to_json()
         cam_json["t"] = rgbScene.meta["all_rgb_ts"][i]
 
-    with open(osp.join(save_dir, f"{i:05d}.json"), "w") as f:
-        json.dump(cam_json, f, indent=2)
+        with open(osp.join(save_dir, f"{i:05d}.json"), "w") as f:
+            json.dump(cam_json, f, indent=2)
 
 
 
@@ -234,7 +234,7 @@ def main(scene_dir, targ_dir=None, cam_only=False):
 
 
 # def get_ori_names():
-#     data_dir = "E2NeRF/orginal_data&preprocessing/real-world/davis-aedat4"
+#     data_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/orginal_data&preprocessing/real-world/davis-aedat4"
 #     fs = glob.glob(osp.join(data_dir, "*.aedat4"))
 #     return [osp.basename(f).split(".")[0] for f in fs]
 
@@ -247,4 +247,4 @@ if __name__ == "__main__":
     scene_dir = osp.join(data_dir, scene_name)
     # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}_finer")
     targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}")
-    main(scene_dir, targ_dir, cam_only=True)
+    main(scene_dir, targ_dir, cam_only=False)
