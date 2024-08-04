@@ -37,6 +37,7 @@ class E2NerfRGBManager:
             
             self.n_bins = self.meta["n_bins"]
         
+        self.ori_w2cs = self.w2cs
         self.w2cs = self.w2cs.reshape(-1, self.n_bins, 3, 4) if not osp.exists(self.mid_rgb_poses_bounds_f) else self.w2cs
         if single_cam and (not osp.exists(self.mid_rgb_poses_bounds_f)):
             self.w2cs = self.w2cs[:, self.n_bins//2, :, :]
@@ -74,7 +75,7 @@ class E2NerfRGBManager:
 
     # REQUIRED
     def get_intrnxs(self):
-        if self.meta is None:
+        if self.meta is None or self.meta.get("rgb_K") is None:
             return np.array([[self.hwf[2], 0, self.hwf[1]/2],
                             [0, self.hwf[2], self.hwf[0]/2],
                             [0,           0,           1]]), np.zeros(4)
@@ -137,7 +138,7 @@ class E2NeRFEVSManager(E2NerfRGBManager):
         return np.stack([(self.imgs[idx] != 0).astype(np.uint8) * 255]*3, axis=-1)
 
     def get_intrnxs(self):
-        if self.meta is None:
+        if self.meta is None or self.meta.get("evs_K") is None:
             return super().get_intrnxs()
         
         return np.array([[self.hwf[2], 0, self.meta["evs_K"][2]],
