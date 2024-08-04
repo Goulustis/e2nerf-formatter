@@ -63,6 +63,21 @@ def format_rgb_cameras(rgbScene:E2NerfRGBManager, save_dir):
             json.dump(cam_json, f, indent=2)
 
 
+def format_full_cameras(rgbScene:E2NerfRGBManager, save_dir):
+    os.makedirs(save_dir, exist_ok=True)
+    rgb_cams = rgbScene.ori_w2cs.reshape(-1, 3, 4)
+    for i in range(len(rgbScene)):
+        M = rgb_cams[i]
+        K, dist = rgbScene.get_intrnxs()
+        camera = make_nerfies_camera(M, K, dist, rgbScene.get_img_size())
+        cam_json = camera.to_json()
+        cam_json["t"] = rgbScene.meta["all_rgb_ts"][i]
+
+    with open(osp.join(save_dir, f"{i:05d}.json"), "w") as f:
+        json.dump(cam_json, f, indent=2)
+
+
+
 def format_evs_cameras(evsScene:E2NeRFEVSManager, save_dir):
     """
     save_dir (str): directory to save the cameras, expect PATH/ecam_set
@@ -85,7 +100,7 @@ def format_evs_cameras(evsScene:E2NeRFEVSManager, save_dir):
 
             if evsScene.cam_t is not None:
                 prev_t, next_t = evsScene.cam_t[frame_idx, bin_idx], evsScene.cam_t[frame_idx, bin_idx + 1]
-                prev_json["t"], next_json["t"] = prev_t, next_t
+                prev_json["t"], next_json["t"] = int(prev_t), int(next_t)
 
 
             with open(prev_cam_f, "w") as f:
@@ -169,8 +184,6 @@ def write_dataset(scene, save_f, n_digit, all=False):
 
 
 def main(scene_dir, targ_dir=None, cam_only=False):
-    # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/camera"
-    # scene_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world/boardroom_b2_v1"
     if targ_dir is None:
         targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", osp.basename(scene_dir))
     colcam_dir = osp.join(targ_dir, "colcam_set")
@@ -187,6 +200,9 @@ def main(scene_dir, targ_dir=None, cam_only=False):
 
     rgb_metadata_f = osp.join(colcam_dir, "metadata.json")
     write_rgb_metadata(rgbScene, rgb_metadata_f)
+    if rgbScene.meta.get("all_rgb_ts") is not None:
+        save_rgb_cam_dir = osp.join(colcam_dir, "all_camera")
+        format_full_cameras(rgbScene, save_rgb_cam_dir)
 
     rgb_dataset_f = osp.join(colcam_dir, "dataset.json")
     src_dataset_f = osp.join(scene_dir, "dataset.json")
@@ -213,23 +229,22 @@ def main(scene_dir, targ_dir=None, cam_only=False):
 
     rel_cam_f = osp.join(scene_dir, "rel_cam.json")
     dst_f = osp.join(targ_dir, "rel_cam.json")
-    if not osp.exists(dst_f):
+    if not osp.exists(dst_f) and osp.exists(rel_cam_f):
         shutil.copy(rel_cam_f, dst_f)
 
 
+# def get_ori_names():
+#     data_dir = "E2NeRF/orginal_data&preprocessing/real-world/davis-aedat4"
+#     fs = glob.glob(osp.join(data_dir, "*.aedat4"))
+#     return [osp.basename(f).split(".")[0] for f in fs]
 
 
 if __name__ == "__main__":
     data_dir = "/ubc/cs/research/kmyi/matthew/projects/E2NeRF/data/real-world"
-    # scene_dirs = sorted(glob.glob(osp.join(data_dir, "*_v*")))
-
-    # for scene_dir in tqdm(scene_dirs):
-    #     main(scene_dir)
-    #     print("processed:", osp.basename(scene_dir))
-
-    #scene_name = "caocao1_v11_t1"
-    scene_name = "board_v13_t2"
+    
+    scene_name = "camera"
+    # for scene_name in tqdm(get_ori_names()):
     scene_dir = osp.join(data_dir, scene_name)
     # targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}_finer")
     targ_dir = osp.join("/ubc/cs/research/kmyi/matthew/projects/ed-nerf/data", f"{scene_name}")
-    main(scene_dir, targ_dir, cam_only=False)
+    main(scene_dir, targ_dir, cam_only=True)
