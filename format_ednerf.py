@@ -201,7 +201,7 @@ def main(scene_dir, targ_dir=None, cam_only=False):
     rgb_metadata_f = osp.join(colcam_dir, "metadata.json")
     write_rgb_metadata(rgbScene, rgb_metadata_f)
     if rgbScene.meta.get("all_rgb_ts") is not None:
-        save_rgb_cam_dir = osp.join(colcam_dir, "all_camera")
+        save_rgb_cam_dir = osp.join(colcam_dir, "full_camera")
         format_full_cameras(rgbScene, save_rgb_cam_dir)
 
     rgb_dataset_f = osp.join(colcam_dir, "dataset.json")
